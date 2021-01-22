@@ -12,15 +12,6 @@
 namespace esphome {
 namespace opentherm {
 
-struct OpenThermGWClimateTargetTempConfig {
- public:
-  OpenThermGWClimateTargetTempConfig();
-  OpenThermGWClimateTargetTempConfig(float default_temperature_low, float default_temperature_high);
-
-  float default_temperature_low{NAN};
-  float default_temperature_high{NAN};
-};
-
 class OpenThermGWClimate : public climate::Climate, public Component {
  public:
   OpenThermGWClimate(GPIOPin *m_pin_in, GPIOPin *m_pin_out, GPIOPin *s_pin_in, GPIOPin *s_pin_out);
@@ -28,52 +19,11 @@ class OpenThermGWClimate : public climate::Climate, public Component {
   void dump_config() override;
   void loop() override;
 
-  void set_sensor(sensor::Sensor *sensor);
-  Trigger<> *get_idle_trigger() const;
-  Trigger<> *get_heat_trigger() const;
-  void set_supports_heat(bool supports_heat);
-  void set_normal_config(const OpenThermGWClimateTargetTempConfig &normal_config);
-  void set_away_config(const OpenThermGWClimateTargetTempConfig &away_config);
-
  protected:
   /// Override control to change settings of the climate device.
   void control(const climate::ClimateCall &call) override;
-  /// Change the away setting, will reset target temperatures to defaults.
-  void change_away_(bool away);
   /// Return the traits of this controller.
   climate::ClimateTraits traits() override;
-
-  /// Re-compute the state of this climate controller.
-  void compute_state_();
-
-  /// Switch the climate device to the given climate mode.
-  void switch_to_action_(climate::ClimateAction action);
-
-  /// The sensor used for getting the current temperature
-  sensor::Sensor *sensor_{nullptr};
-  /** The trigger to call when the controller should switch to idle mode.
-   *
-   * In idle mode, the controller is assumed to have heating disabled.
-   */
-  Trigger<> *idle_trigger_;
-  /** The trigger to call when the controller should switch to heating mode.
-   *
-   * A null value for this attribute means that the controller has no heating action.
-   */
-  Trigger<> *heat_trigger_{nullptr};
-  bool supports_heat_{false};
-  /** A reference to the trigger that was previously active.
-   *
-   * This is so that the previous trigger can be stopped before enabling a new one.
-   */
-  Trigger<> *prev_trigger_{nullptr};
-
-  OpenThermGWClimateTargetTempConfig normal_config_{};
-  bool supports_away_{false};
-  OpenThermGWClimateTargetTempConfig away_config_{};
-
-  OpenTherm mOT;
-  OpenTherm sOT;
 
   void processRequest(uint32_t request, OpenThermResponseStatus status);
   void processResponse(const uint32_t response);
@@ -91,6 +41,12 @@ class OpenThermGWClimate : public climate::Climate, public Component {
   void process_Master_MSG_TSET(const uint32_t request);
   void process_Master_MSG_TSETCH2(const uint32_t request);
   void process_Master_MSG_YEAR(const uint32_t request);
+  void process_Master_MSG_TDHWSET(const uint32_t request);
+  void process_Master_MSG_MAXTSET(const uint32_t request);
+  void process_Master_MSG_TSP_INDEX_TSP_VALUE(const uint32_t response);
+  void process_Master_MSG_COOLING_CONTROL(const uint32_t request);
+  void process_Master_MSG_MAX_REL_MOD_LEVEL_SETTING(const uint32_t request);
+
   void process_Slave_MSG_ASF_FLAGS_OEM_FAULT_CODE(const uint32_t response);
   void process_Slave_MSG_BURNER_OPERATION_HOURS(const uint32_t response);
   void process_Slave_MSG_BURNER_STARTS(const uint32_t response);
@@ -123,7 +79,19 @@ class OpenThermGWClimate : public climate::Climate, public Component {
   void process_Slave_MSG_TROVERRIDE(const uint32_t response);
   void process_Slave_MSG_TSTORAGE(const uint32_t response);
   void process_Slave_MSG_YEAR(const uint32_t response);
+  void process_Slave_MSG_RBP_FLAGS(const uint32_t response);
+  void process_Slave_MSG_TDHWSET_UB_LB(const uint32_t response);
+  void process_Slave_MSG_MAXTSET_UB_LB(const uint32_t response);
+  void process_Slave_MSG_TDHWSET(const uint32_t request);
+  void process_Slave_MSG_MAXTSET(const uint32_t request);
+  void process_Slave_MSG_TSP(const uint32_t response);
+  void process_Slave_MSG_TSP_INDEX_TSP_VALUE(const uint32_t response);
+  void process_Slave_MSG_FHB_SIZE(const uint32_t response);
+  void process_Slave_MSG_FHB_INDEX_FHB_VALUE(const uint32_t response);
+  void process_Slave_MSG_MAX_CAPACITY_MIN_MOD_LEVEL(const uint32_t response);
 
+  OpenThermChannel mOT;
+  OpenThermChannel sOT;
 };
 
 }  // namespace opentherm

@@ -167,54 +167,45 @@ RESPONSE_INVALID
 };
 
 struct OpenThermStore {
-OpenThermStore(bool slave = false) 
-: isSlave(slave)
-{}
-static void gpio_intr(OpenThermStore *arg);
+  OpenThermStore(bool slave = false) 
+  : isSlave(slave)
+  {}
+  static void gpio_intr(OpenThermStore *arg);
 
-ISRInternalGPIOPin *pin_in;
-volatile uint32_t response{0};
-volatile uint32_t responseTimestamp{0};
-volatile uint8_t responseBitIndex{0};
-volatile OpenThermStatus status{OpenThermStatus::NOT_INITIALIZED};
-const bool isSlave;
+  ISRInternalGPIOPin *pin_in;
+  volatile uint32_t response{0};
+  volatile uint32_t responseTimestamp{0};
+  volatile uint8_t responseBitIndex{0};
+  volatile OpenThermStatus status{OpenThermStatus::NOT_INITIALIZED};
+  const bool isSlave;
 };
 
-class OpenTherm
+class OpenThermChannel
 {
 public:
-OpenTherm(GPIOPin *pin_in, GPIOPin *pin_out, bool isSlave = false);
-~OpenTherm();
+  OpenThermChannel(GPIOPin *pin_in, GPIOPin *pin_out, bool isSlave = false);
+  ~OpenThermChannel();
 
-void begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
-void loop();
-uint32_t sendRequest(uint32_t request);
-bool sendResponse(uint32_t request);
-OpenThermResponseStatus getLastResponseStatus();
-
-//basic requests
-uint32_t setBoilerStatus(bool enableCentralHeating, bool enableHotWater = false, bool enableCooling = false, bool enableOutsideTemperatureCompensation = false, bool enableCentralHeating2 = false);
-bool setBoilerTemperature(float temperature);
-float getBoilerTemperature();
-float getReturnTemperature();
-float getModulation();
-float getPressure();
-uint8_t getFault();
+  void begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
+  void loop();
+  uint32_t sendRequest(uint32_t request);
+  bool sendResponse(uint32_t request);
+  OpenThermResponseStatus getLastResponseStatus();
 
 protected:
-bool sendRequestAync(uint32_t request);
-bool isReady();
-void setActiveState();
-void setIdleState();
-void activateBoiler();
-void sendBit(bool high);
+  bool sendRequestAync(uint32_t request);
+  bool isReady();
+  void setActiveState();
+  void setIdleState();
+  void activateBoiler();
+  void sendBit(bool high);
 
-std::function<void(uint32_t, OpenThermResponseStatus)> process_response_callback;
-GPIOPin *pin_in_;
-GPIOPin *pin_out_;
-const bool isSlave;
-OpenThermResponseStatus responseStatus;
-OpenThermStore store_;
+  std::function<void(uint32_t, OpenThermResponseStatus)> process_response_callback;
+  GPIOPin *pin_in_;
+  GPIOPin *pin_out_;
+  const bool isSlave;
+  OpenThermResponseStatus responseStatus;
+  OpenThermStore store_;
 };
 
 const char *statusToString(OpenThermResponseStatus status);
@@ -243,6 +234,8 @@ bool isCoolingActive(uint32_t response);
 bool isDiagnostic(uint32_t response);
 uint8_t getUBUInt8(const uint32_t response);
 uint8_t getLBUInt8(const uint32_t response);
+int8_t getUBInt8(const uint32_t response);
+int8_t getLBInt8(const uint32_t response);
 uint16_t getUInt16(const uint32_t response);
 int16_t getInt16(const uint32_t response);
 float getFloat(const uint32_t response);  

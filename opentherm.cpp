@@ -6,7 +6,7 @@ Copyright 2018, Ihor Melnyk */
 namespace esphome {
 namespace opentherm {
 
-OpenTherm::OpenTherm(GPIOPin *pin_in, GPIOPin *pin_out, bool slave):
+OpenThermChannel::OpenThermChannel(GPIOPin *pin_in, GPIOPin *pin_out, bool slave):
   pin_in_(pin_in),
   pin_out_(pin_out),
   isSlave(slave),
@@ -14,11 +14,11 @@ OpenTherm::OpenTherm(GPIOPin *pin_in, GPIOPin *pin_out, bool slave):
 {
 }
 
-OpenTherm::~OpenTherm() {
+OpenThermChannel::~OpenThermChannel() {
   this->pin_in_->detach_interrupt();
 }
 
-void OpenTherm::begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback)
+void OpenThermChannel::begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback)
 {
   this->pin_in_->setup();
   this->store_.pin_in = this->pin_in_->to_isr();
@@ -32,32 +32,32 @@ void OpenTherm::begin(std::function<void(uint32_t, OpenThermResponseStatus)> cal
   this->process_response_callback = callback;
 }
 
-bool OpenTherm::isReady()
+bool OpenThermChannel::isReady()
 {
   return this->store_.status == OpenThermStatus::READY;
 }
 
-void OpenTherm::setActiveState() {
+void OpenThermChannel::setActiveState() {
   this->pin_out_->digital_write(LOW);
 }
 
-void OpenTherm::setIdleState() {
+void OpenThermChannel::setIdleState() {
   this->pin_out_->digital_write(HIGH);
 }
 
-void OpenTherm::activateBoiler() {
+void OpenThermChannel::activateBoiler() {
   setIdleState();
   delay(1000);
 }
 
-void OpenTherm::sendBit(bool high) {
+void OpenThermChannel::sendBit(bool high) {
   if (high) setActiveState(); else setIdleState();
   delayMicroseconds(500);
   if (high) setIdleState(); else setActiveState();
   delayMicroseconds(500);
 }
 
-bool OpenTherm::sendRequestAync(uint32_t request)
+bool OpenThermChannel::sendRequestAync(uint32_t request)
 {
   noInterrupts();
   const bool ready = isReady();
@@ -82,7 +82,7 @@ bool OpenTherm::sendRequestAync(uint32_t request)
   return true;
 }
 
-uint32_t OpenTherm::sendRequest(uint32_t request)
+uint32_t OpenThermChannel::sendRequest(uint32_t request)
 {
   if (!sendRequestAync(request)) return 0;
   while (!isReady()) {
@@ -92,7 +92,7 @@ uint32_t OpenTherm::sendRequest(uint32_t request)
   return this->store_.response;
 }
 
-bool OpenTherm::sendResponse(uint32_t request)
+bool OpenThermChannel::sendResponse(uint32_t request)
 {
   this->store_.status = OpenThermStatus::REQUEST_SENDING;
   this->store_.response = 0;
@@ -108,12 +108,12 @@ bool OpenTherm::sendResponse(uint32_t request)
   return true;
 }
 
-OpenThermResponseStatus OpenTherm::getLastResponseStatus()
+OpenThermResponseStatus OpenThermChannel::getLastResponseStatus()
 {
   return responseStatus;
 }
 
-void OpenTherm::loop()
+void OpenThermChannel::loop()
 {
   noInterrupts();
   OpenThermStatus st = this->store_.status;
@@ -148,41 +148,6 @@ void OpenTherm::loop()
       this->store_.status = OpenThermStatus::READY;
     }
   }
-}
-
-//basic requests
-
-uint32_t OpenTherm::setBoilerStatus(bool enableCentralHeating, bool enableHotWater, bool enableCooling, bool enableOutsideTemperatureCompensation, bool enableCentralHeating2) {
-  return sendRequest(buildSetBoilerStatusRequest(enableCentralHeating, enableHotWater, enableCooling, enableOutsideTemperatureCompensation, enableCentralHeating2));
-}
-
-bool OpenTherm::setBoilerTemperature(float temperature) {
-  uint32_t response = sendRequest(buildSetBoilerTemperatureRequest(temperature));
-  return isValidResponse(response);
-}
-
-float OpenTherm::getBoilerTemperature() {
-  uint32_t response = sendRequest(buildGetBoilerTemperatureRequest());
-  return isValidResponse(response) ? getFloat(response) : 0;
-}
-
-float OpenTherm::getReturnTemperature() {
-  uint32_t response = sendRequest(buildRequest(OpenThermRequestType::READ, OpenThermMessageID::MSG_TRET, 0));
-  return isValidResponse(response) ? getFloat(response) : 0;
-}
-
-float OpenTherm::getModulation() {
-  uint32_t response = sendRequest(buildRequest(OpenThermRequestType::READ, OpenThermMessageID::MSG_REL_MOD_LEVEL, 0));
-  return isValidResponse(response) ? getFloat(response) : 0;
-}
-
-float OpenTherm::getPressure() {
-  uint32_t response = sendRequest(buildRequest(OpenThermRequestType::READ, OpenThermMessageID::MSG_CH_PRESSURE, 0));
-  return isValidResponse(response) ? getFloat(response) : 0;
-}
-
-uint8_t OpenTherm::getFault() {
-  return ((sendRequest(buildRequest(OpenThermRequestType::READ, OpenThermMessageID::MSG_ASF_FLAGS_OEM_FAULT_CODE, 0)) >> 8) & 0xff);
 }
 
 void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
@@ -364,6 +329,14 @@ uint8_t getUBUInt8(const uint32_t response) {
 
 uint8_t getLBUInt8(const uint32_t response) {
   return response & 0xff;
+}
+
+int8_t getUBInt8(const uint32_t response) {
+  return (int8_t) ((response >> 8) & 0xff);
+}
+
+int8_t getLBInt8(const uint32_t response) {
+  return (int8_t) (response & 0xff);
 }
 
 uint16_t getUInt16(const uint32_t response) {
