@@ -1,0 +1,28 @@
+type: 'custom:simple-thermostat'
+control:
+  preset:
+    away: true
+entity: climate.livingroom
+decimals: 1
+name: Livingroom
+sensors:
+  - entity: binary_sensor.ch_active
+    name: CH Active
+    icon: 'mdi:radiator'
+  - entity: binary_sensor.dhw_active
+    name: DHW Active
+    icon: 'mdi:water-boiler'
+  - entity: binary_sensor.flame_on
+    name: Flame On
+    icon: 'mdi:fire'
+  - entity: sensor.boiler_water_temperature
+    unit: °C
+  - entity: sensor.dhw_temperature
+    unit: °C
+  - entity: sensor.return_water_temperature
+    unit: °C
+  - entity: sensor.relative_modulation_level
+    unit: '%'
+faults:
+  - entity: binary_sensor.fault_indication
+  - entity: binary_sensor.diagnostic_event

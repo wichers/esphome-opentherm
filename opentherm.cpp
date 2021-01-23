@@ -18,7 +18,7 @@ OpenThermChannel::~OpenThermChannel() {
   this->pin_in_->detach_interrupt();
 }
 
-void OpenThermChannel::begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback)
+void OpenThermChannel::setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback)
 {
   this->pin_in_->setup();
   this->store_.pin_in = this->pin_in_->to_isr();
@@ -30,6 +30,43 @@ void OpenThermChannel::begin(std::function<void(uint32_t, OpenThermResponseStatu
   activateBoiler();
   this->store_.status = OpenThermStatus::READY;
   this->process_response_callback = callback;
+}
+
+void OpenThermChannel::loop()
+{
+  noInterrupts();
+  OpenThermStatus st = this->store_.status;
+  uint32_t ts = this->store_.responseTimestamp;
+  interrupts();
+
+  if (st == OpenThermStatus::READY) return;
+  uint32_t newTs = micros();
+  if (st != OpenThermStatus::NOT_INITIALIZED && (newTs - ts) > 1000000) {
+    this->store_.status = OpenThermStatus::READY;
+    responseStatus = OpenThermResponseStatus::TIMEOUT;
+    if (process_response_callback) {
+      process_response_callback(this->store_.response, responseStatus);
+    }
+  }
+  else if (st == OpenThermStatus::RESPONSE_INVALID) {
+    this->store_.status = OpenThermStatus::DELAY;
+    responseStatus = OpenThermResponseStatus::INVALID;
+    if (process_response_callback) {
+      process_response_callback(this->store_.response, responseStatus);
+    }
+  }
+  else if (st == OpenThermStatus::RESPONSE_READY) {
+    this->store_.status = OpenThermStatus::DELAY;
+    responseStatus = (isSlave ? isValidResponse(this->store_.response) : isValidRequest(this->store_.response)) ? OpenThermResponseStatus::SUCCESS : OpenThermResponseStatus::INVALID;
+    if (process_response_callback) {
+      process_response_callback(this->store_.response, responseStatus);
+    }
+  }
+  else if (st == OpenThermStatus::DELAY) {
+    if ((newTs - ts) > 100000) {
+      this->store_.status = OpenThermStatus::READY;
+    }
+  }
 }
 
 bool OpenThermChannel::isReady()
@@ -111,43 +148,6 @@ bool OpenThermChannel::sendResponse(uint32_t request)
 OpenThermResponseStatus OpenThermChannel::getLastResponseStatus()
 {
   return responseStatus;
-}
-
-void OpenThermChannel::loop()
-{
-  noInterrupts();
-  OpenThermStatus st = this->store_.status;
-  uint32_t ts = this->store_.responseTimestamp;
-  interrupts();
-
-  if (st == OpenThermStatus::READY) return;
-  uint32_t newTs = micros();
-  if (st != OpenThermStatus::NOT_INITIALIZED && (newTs - ts) > 1000000) {
-    this->store_.status = OpenThermStatus::READY;
-    responseStatus = OpenThermResponseStatus::TIMEOUT;
-    if (process_response_callback) {
-      process_response_callback(this->store_.response, responseStatus);
-    }
-  }
-  else if (st == OpenThermStatus::RESPONSE_INVALID) {
-    this->store_.status = OpenThermStatus::DELAY;
-    responseStatus = OpenThermResponseStatus::INVALID;
-    if (process_response_callback) {
-      process_response_callback(this->store_.response, responseStatus);
-    }
-  }
-  else if (st == OpenThermStatus::RESPONSE_READY) {
-    this->store_.status = OpenThermStatus::DELAY;
-    responseStatus = (isSlave ? isValidResponse(this->store_.response) : isValidRequest(this->store_.response)) ? OpenThermResponseStatus::SUCCESS : OpenThermResponseStatus::INVALID;
-    if (process_response_callback) {
-      process_response_callback(this->store_.response, responseStatus);
-    }
-  }
-  else if (st == OpenThermStatus::DELAY) {
-    if ((newTs - ts) > 100000) {
-      this->store_.status = OpenThermStatus::READY;
-    }
-  }
 }
 
 void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
@@ -241,6 +241,13 @@ uint32_t buildResponse(OpenThermMessageType type, OpenThermMessageID id, uint16_
   return response;
 }
 
+uint32_t modifyMsgData(uint32_t msg, uint16_t data)
+{
+  msg = (msg & 0x7fff0000) | data;
+  if (parity(msg)) msg |= (1ul << 31);
+  return msg;
+}
+
 bool isValidResponse(uint32_t response)
 {
   if (parity(response)) return false;
@@ -279,48 +286,6 @@ const char *messageTypeToString(OpenThermMessageType message_type)
     case UNKNOWN_DATA_ID: return "UNKNOWN_DATA_ID";
     default:        return "UNKNOWN";
   }
-}
-
-//building requests
-
-uint32_t buildSetBoilerStatusRequest(bool enableCentralHeating, bool enableHotWater, bool enableCooling, bool enableOutsideTemperatureCompensation, bool enableCentralHeating2) {
-  uint16_t data = enableCentralHeating | (enableHotWater << 1) | (enableCooling << 2) | (enableOutsideTemperatureCompensation << 3) | (enableCentralHeating2 << 4);
-  data <<= 8;
-  return buildRequest(OpenThermMessageType::READ_DATA, OpenThermMessageID::MSG_STATUS, data);
-}
-
-uint32_t buildSetBoilerTemperatureRequest(float temperature) {
-  uint16_t data = temperatureToData(temperature);
-  return buildRequest(OpenThermMessageType::WRITE_DATA, OpenThermMessageID::MSG_TSET, data);
-}
-
-uint32_t buildGetBoilerTemperatureRequest() {
-  return buildRequest(OpenThermMessageType::READ_DATA, OpenThermMessageID::MSG_TBOILER, 0);
-}
-
-//parsing responses
-bool isFault(uint32_t response) {
-  return response & 0x1;
-}
-
-bool isCentralHeatingActive(uint32_t response) {
-  return response & 0x2;
-}
-
-bool isHotWaterActive(uint32_t response) {
-  return response & 0x4;
-}
-
-bool isFlameOn(uint32_t response) {
-  return response & 0x8;
-}
-
-bool isCoolingActive(uint32_t response) {
-  return response & 0x10;
-}
-
-bool isDiagnostic(uint32_t response) {
-  return response & 0x40;
 }
 
 uint8_t getUBUInt8(const uint32_t response) {

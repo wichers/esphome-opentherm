@@ -16,7 +16,7 @@ wifi:
 # Enable logging
 logger:
   baud_rate: 0
-  level: DEBUG  
+  level: DEBUG
 
 api:
 ota:
@@ -28,14 +28,32 @@ binary_sensor:
 
 climate:
 - platform: custom
-  lambda: |- 
+  lambda: |-
     auto thermostat_in = new GPIOPin(26, INPUT);
     auto thermostat_out = new GPIOPin(17, OUTPUT);
     auto boiler_in = new GPIOPin(25, INPUT);
     auto boiler_out = new GPIOPin(16, OUTPUT);
-    auto ca = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
-    App.register_component(ca);
-    App.register_climate(ca);
-    return {ca};
+    auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
+    App.register_component(ot);
+    ot->ch_active = new BinarySensor("CH Active");
+    App.register_binary_sensor(ot->ch_active);
+    ot->dhw_active = new BinarySensor("DHW Active");
+    App.register_binary_sensor(ot->dhw_active);
+    ot->flame_on = new BinarySensor("Flame On");
+    App.register_binary_sensor(ot->flame_on);
+    ot->diagnostic_event = new BinarySensor("Diagnostic Event");
+    App.register_binary_sensor(ot->diagnostic_event);
+    ot->fault_indication = new BinarySensor("Fault Indication");
+    App.register_binary_sensor(ot->fault_indication);
+    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
+    App.register_sensor(ot->boiler_water_temp);
+    ot->dhw_temperature = new Sensor("DHW Temperature");
+    App.register_sensor(ot->dhw_temperature);
+    ot->return_water_temperature = new Sensor("Return Water Temperature");
+    App.register_sensor(ot->return_water_temperature);
+    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
+    App.register_sensor(ot->relative_modulation_level);
+    App.register_climate(ot);
+    return {ot};
   climates:
-    - name: "livingroom"   
+    - name: "livingroom"

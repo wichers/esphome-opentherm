@@ -186,7 +186,7 @@ public:
   OpenThermChannel(GPIOPin *pin_in, GPIOPin *pin_out, bool isSlave = false);
   ~OpenThermChannel();
 
-  void begin(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
+  void setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
   void loop();
   uint32_t sendRequest(uint32_t request);
   bool sendResponse(uint32_t request);
@@ -209,29 +209,15 @@ protected:
 };
 
 const char *statusToString(OpenThermResponseStatus status);
-
 uint32_t buildRequest(OpenThermMessageType type, OpenThermMessageID id, uint16_t data);
 uint32_t buildResponse(OpenThermMessageType type, OpenThermMessageID id, uint16_t data);
-
 bool parity(uint32_t frame);
 OpenThermMessageType getMessageType(uint32_t message);
 OpenThermMessageID getDataID(uint32_t frame);
 const char *messageTypeToString(OpenThermMessageType message_type);
 bool isValidRequest(uint32_t request);
 bool isValidResponse(uint32_t response);
-
-//requests
-uint32_t buildSetBoilerStatusRequest(bool enableCentralHeating, bool enableHotWater = false, bool enableCooling = false, bool enableOutsideTemperatureCompensation = false, bool enableCentralHeating2 = false);
-uint32_t buildSetBoilerTemperatureRequest(float temperature);
-uint32_t buildGetBoilerTemperatureRequest();
-
-//responses
-bool isFault(uint32_t response);
-bool isCentralHeatingActive(uint32_t response);
-bool isHotWaterActive(uint32_t response);
-bool isFlameOn(uint32_t response);
-bool isCoolingActive(uint32_t response);
-bool isDiagnostic(uint32_t response);
+uint32_t modifyMsgData(uint32_t msg, uint16_t data);
 uint8_t getUBUInt8(const uint32_t response);
 uint8_t getLBUInt8(const uint32_t response);
 int8_t getUBInt8(const uint32_t response);
