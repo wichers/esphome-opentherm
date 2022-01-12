@@ -15,7 +15,7 @@ namespace opentherm {
 
 class OpenThermGWClimate : public climate::Climate, public Component {
  public:
-  OpenThermGWClimate(GPIOPin *m_pin_in, GPIOPin *m_pin_out, GPIOPin *s_pin_in, GPIOPin *s_pin_out);
+  OpenThermGWClimate(InternalGPIOPin *m_pin_in, InternalGPIOPin *m_pin_out, InternalGPIOPin *s_pin_in, InternalGPIOPin *s_pin_out);
   void setup() override;
   void dump_config() override;
   void loop() override;

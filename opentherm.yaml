@@ -29,10 +29,18 @@ binary_sensor:
 climate:
 - platform: custom
   lambda: |-
-    auto thermostat_in = new GPIOPin(26, INPUT);
-    auto thermostat_out = new GPIOPin(17, OUTPUT);
-    auto boiler_in = new GPIOPin(25, INPUT);
-    auto boiler_out = new GPIOPin(16, OUTPUT);
+    auto thermostat_in = new esp32::ArduinoInternalGPIOPin();
+    thermostat_in->set_pin(26);
+    thermostat_in->pin_mode(gpio::FLAG_INPUT);
+    auto thermostat_out = new esp32::ArduinoInternalGPIOPin();
+    thermostat_out->set_pin(17);
+    thermostat_out->pin_mode(gpio::FLAG_OUTPUT);
+    auto boiler_in = new esp32::ArduinoInternalGPIOPin();
+    boiler_in->set_pin(25);
+    boiler_in->pin_mode(gpio::FLAG_INPUT);
+    auto boiler_out = new esp32::ArduinoInternalGPIOPin();
+    boiler_out->set_pin(16);
+    boiler_out->pin_mode(gpio::FLAG_OUTPUT);
     auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
     App.register_component(ot);
     ot->ch_active = new BinarySensor("CH Active");
@@ -52,7 +60,6 @@ climate:
     ot->return_water_temperature = new Sensor("Return Water Temperature");
     App.register_sensor(ot->return_water_temperature);
     ot->relative_modulation_level = new Sensor("Relative Modulation Level");
-    App.register_sensor(ot->relative_modulation_level);
     App.register_climate(ot);
     return {ot};
   climates:

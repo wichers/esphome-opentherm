@@ -11,8 +11,8 @@ P MGS-TYPE SPARE DATA-ID  DATA-VALUE
 0 000      0000  00000000 00000000 00000000
 */
 
-#include "esphome/core/esphal.h"
-
+#include <esphome/core/hal.h>
+#include <esphome/core/gpio.h>
 #include <functional>
 
 namespace esphome {
@@ -28,17 +28,17 @@ TIMEOUT
 
 enum OpenThermMessageType {
 /*  Master to Slave */
-READ_DATA       = B000,
+READ_DATA       = 0,
 READ            = READ_DATA, // for backwared compatibility
-WRITE_DATA      = B001,
+WRITE_DATA      = 1,
 WRITE           = WRITE_DATA, // for backwared compatibility
-INVALID_DATA    = B010,
-RESERVED        = B011,
+INVALID_DATA    = 2,
+RESERVED        = 3,
 /* Slave to Master */
-READ_ACK        = B100,
-WRITE_ACK       = B101,
-DATA_INVALID    = B110,
-UNKNOWN_DATA_ID = B111
+READ_ACK        = 4,
+WRITE_ACK       = 5,
+DATA_INVALID    = 6,
+UNKNOWN_DATA_ID = 7
 };
 
 typedef OpenThermMessageType OpenThermRequestType; // for backwared compatibility
@@ -172,7 +172,7 @@ struct OpenThermStore {
   {}
   static void gpio_intr(OpenThermStore *arg);
 
-  ISRInternalGPIOPin *pin_in;
+  ISRInternalGPIOPin pin_in;
   volatile uint32_t response{0};
   volatile uint32_t responseTimestamp{0};
   volatile uint8_t responseBitIndex{0};
@@ -183,7 +183,7 @@ struct OpenThermStore {
 class OpenThermChannel
 {
 public:
-  OpenThermChannel(GPIOPin *pin_in, GPIOPin *pin_out, bool isSlave = false);
+  OpenThermChannel(InternalGPIOPin *pin_in, InternalGPIOPin *pin_out, bool isSlave = false);
   ~OpenThermChannel();
 
   void setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
@@ -201,8 +201,8 @@ protected:
   void sendBit(bool high);
 
   std::function<void(uint32_t, OpenThermResponseStatus)> process_response_callback;
-  GPIOPin *pin_in_;
-  GPIOPin *pin_out_;
+  InternalGPIOPin *pin_in_;
+  InternalGPIOPin *pin_out_;
   const bool isSlave;
   OpenThermResponseStatus responseStatus;
   OpenThermStore store_;

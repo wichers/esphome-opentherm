@@ -6,7 +6,7 @@ namespace opentherm {
 
 static const char *TAG = "opentherm_gw.climate";
 
-OpenThermGWClimate::OpenThermGWClimate(GPIOPin *m_pin_in, GPIOPin *m_pin_out, GPIOPin *s_pin_in, GPIOPin *s_pin_out)
+OpenThermGWClimate::OpenThermGWClimate(InternalGPIOPin *m_pin_in, InternalGPIOPin *m_pin_out, InternalGPIOPin *s_pin_in, InternalGPIOPin *s_pin_out)
      : mOT(m_pin_in, m_pin_out),
       sOT(s_pin_in, s_pin_out, true)
 {
@@ -35,8 +35,11 @@ void OpenThermGWClimate::control(const climate::ClimateCall &call) {
     this->mode = *call.get_mode();
   if (call.get_target_temperature().has_value())
     this->target_temperature = *call.get_target_temperature();
-  if (call.get_away().has_value())
-      this->away = *call.get_away();
+  //if (call.get_away().has_value())
+  //    this->away = *call.get_away();
+
+  // Set to 0 to pass along the value specified by the thermostat. To stop the boiler heating the house, 
+  // set the control setpoint to some low value and clear the CH enable bit using the CH command.
 
   this->publish_state();
 }
@@ -46,8 +49,11 @@ climate::ClimateTraits OpenThermGWClimate::traits() {
   traits.set_supports_current_temperature(true);
 //traits.set_supports_auto_mode(true);
 //  traits.set_supports_cool_mode(true);
-  traits.set_supports_heat_mode(true);
-  traits.set_supports_away(true);
+  traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
+  traits.set_supported_presets({
+      climate::CLIMATE_PRESET_HOME,
+      climate::CLIMATE_PRESET_AWAY,
+  });
   //traits.set_supports_action(true);
   return traits;
 }
@@ -302,6 +308,10 @@ void OpenThermGWClimate::process_Master_MSG_STATUS(uint32_t &request) {
     //ESP_LOGD(TAG, "master_cooling_enabled: %s", YESNO(master_cooling_enabled));
     //ESP_LOGD(TAG, "master_otc_enabled: %s", YESNO(master_otc_enabled));
     //ESP_LOGD(TAG, "master_ch2_enabled: %s", YESNO(master_ch2_enabled));
+
+    //if (this->away) {
+      
+    //}
 }
 
 void OpenThermGWClimate::process_Slave_MSG_STATUS(uint32_t &response) {
@@ -356,16 +366,10 @@ void OpenThermGWClimate::process_Slave_MSG_STATUS(uint32_t &response) {
 // #1: Control setpoint ie CH water temperature setpoint (°C)
 void OpenThermGWClimate::process_Master_MSG_TSET(uint32_t &request) {
     float control_setpoint = getFloat(request);
-    ESP_LOGD(TAG, "Control setpoint ie CH water temperature setpoint (°C): %f", control_setpoint);
-
-  // The master decides the actual range over which the control setpoint is defined. The default range is
-  // assumed to be 0 to 100.
-  /*
-  if (temperature < 0.0f)
-    temperature = 0.0f;
-  if (temperature > 100.0f)
-    temperature = 100.0f;
-*/
+    ESP_LOGD(TAG, "CH water temperature setpoint (°C): %f", control_setpoint);
+    if (control_setpoint != this->target_temperature) {
+      //request = modifyMsgData(request, temperatureToData(this->target_temperature));
+    }
 }
 
 // #5: Application-specific flags
@@ -519,18 +523,37 @@ void OpenThermGWClimate::process_Slave_MSG_DHW_FLOW_RATE(uint32_t &response) {
 
 // #20: Day of Week & Time of Day
 void OpenThermGWClimate::process_Master_MSG_DAY_TIME(uint32_t &msg) {
+    uint8_t ub = getUBUInt8(msg);
+    uint8_t minutes = getLBUInt8(msg);
+    uint8_t day_of_week = (ub >> 5) & 7;
+    uint8_t hours = (ub & 0x1f);
 }
+
 void OpenThermGWClimate::process_Slave_MSG_DAY_TIME(uint32_t &msg) {
+    uint8_t ub = getUBUInt8(msg);
+    uint8_t minutes = getLBUInt8(msg);
+    uint8_t day_of_week = (ub >> 5) & 7;
+    uint8_t hours = (ub & 0x1f);
 }
+
 // #21: Date
 void OpenThermGWClimate::process_Master_MSG_DATE(uint32_t &msg) {
+    uint8_t month = getUBUInt8(msg);
+    uint8_t day_of_month = getLBUInt8(msg);
 }
+
 void OpenThermGWClimate::process_Slave_MSG_DATE(uint32_t &msg) {
+    uint8_t month = getUBUInt8(msg);
+    uint8_t day_of_month = getLBUInt8(msg);
 }
+
 // #22: Year
 void OpenThermGWClimate::process_Master_MSG_YEAR(uint32_t &msg) {
+    uint16_t year = getUInt16(msg);
 }
+
 void OpenThermGWClimate::process_Slave_MSG_YEAR(uint32_t &msg) {
+    uint16_t year = getUInt16(msg);
 }
 
 // #23: Current room setpoint for 2nd CH circuit (°C)
@@ -845,10 +868,11 @@ void OpenThermGWClimate::process_Master_MSG_COOLING_CONTROL(uint32_t &request) {
 void OpenThermGWClimate::process_Master_MSG_MAX_REL_MOD_LEVEL_SETTING(uint32_t &request) {
     // Maximum relative boiler modulation level setting for sequencer and off-low & pump control applications.
     float max_rel_mod_level = getFloat(request);
-    ESP_LOGD(TAG, "max_rel_mod_level: %f", max_rel_mod_level);
     if (this->max_relative_modulation_level.has_value()) {
+      max_rel_mod_level = this->max_relative_modulation_level.value();
       request = modifyMsgData(request, max_rel_mod_level);
     }
+    ESP_LOGD(TAG, "max_rel_mod_level: %f", max_rel_mod_level);
 }
 
 // #15: Maximum boiler capacity (kW) / Minimum boiler modulation level(%)

@@ -2,11 +2,12 @@
 Copyright 2018, Ihor Melnyk */
 
 #include "opentherm.h"
+#include <esphome/core/helpers.h>
 
 namespace esphome {
 namespace opentherm {
 
-OpenThermChannel::OpenThermChannel(GPIOPin *pin_in, GPIOPin *pin_out, bool slave):
+OpenThermChannel::OpenThermChannel(InternalGPIOPin *pin_in, InternalGPIOPin *pin_out, bool slave):
   pin_in_(pin_in),
   pin_out_(pin_out),
   isSlave(slave),
@@ -25,7 +26,7 @@ void OpenThermChannel::setup(std::function<void(uint32_t, OpenThermResponseStatu
 
   this->pin_out_->setup();
 
-  this->pin_in_->attach_interrupt(OpenThermStore::gpio_intr, &this->store_, CHANGE);
+  this->pin_in_->attach_interrupt(OpenThermStore::gpio_intr, &this->store_, gpio::INTERRUPT_ANY_EDGE);
  
   activateBoiler();
   this->store_.status = OpenThermStatus::READY;
@@ -34,10 +35,13 @@ void OpenThermChannel::setup(std::function<void(uint32_t, OpenThermResponseStatu
 
 void OpenThermChannel::loop()
 {
-  noInterrupts();
-  OpenThermStatus st = this->store_.status;
-  uint32_t ts = this->store_.responseTimestamp;
-  interrupts();
+  OpenThermStatus st;
+  uint32_t ts;
+  {
+    InterruptLock lock; 
+    st = this->store_.status;
+    ts = this->store_.responseTimestamp;
+  }
 
   if (st == OpenThermStatus::READY) return;
   uint32_t newTs = micros();
@@ -75,11 +79,11 @@ bool OpenThermChannel::isReady()
 }
 
 void OpenThermChannel::setActiveState() {
-  this->pin_out_->digital_write(LOW);
+  this->pin_out_->digital_write(false);
 }
 
 void OpenThermChannel::setIdleState() {
-  this->pin_out_->digital_write(HIGH);
+  this->pin_out_->digital_write(true);
 }
 
 void OpenThermChannel::activateBoiler() {
@@ -96,9 +100,11 @@ void OpenThermChannel::sendBit(bool high) {
 
 bool OpenThermChannel::sendRequestAync(uint32_t request)
 {
-  noInterrupts();
-  const bool ready = isReady();
-  interrupts();
+  bool ready;
+  {
+    InterruptLock lock; 
+    ready = isReady();
+  }
 
   if (!ready)
     return false;
@@ -107,11 +113,11 @@ bool OpenThermChannel::sendRequestAync(uint32_t request)
   this->store_.response = 0;
   responseStatus = OpenThermResponseStatus::NONE;
 
-  sendBit(HIGH); //start bit
+  sendBit(true); //start bit
   for (int i = 31; i >= 0; i--) {
-    sendBit(bitRead(request, i));
+    sendBit((request & (1 << i)) != 0);
   }
-  sendBit(HIGH); //stop bit
+  sendBit(true); //stop bit
   setIdleState();
 
   this->store_.status = OpenThermStatus::RESPONSE_WAITING;
@@ -135,11 +141,11 @@ bool OpenThermChannel::sendResponse(uint32_t request)
   this->store_.response = 0;
   responseStatus = OpenThermResponseStatus::NONE;
 
-  sendBit(HIGH); //start bit
+  sendBit(true); //start bit
   for (int i = 31; i >= 0; i--) {
-    sendBit(bitRead(request, i));
+    sendBit((request & (1 << i)) != 0);
   }
-  sendBit(HIGH); //stop bit
+  sendBit(true); //stop bit
   setIdleState();
   this->store_.status = OpenThermStatus::READY;
   return true;
@@ -150,11 +156,11 @@ OpenThermResponseStatus OpenThermChannel::getLastResponseStatus()
   return responseStatus;
 }
 
-void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
+void IRAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
 {
   if (arg->status == OpenThermStatus::READY)
   {
-    if (!arg->isSlave && arg->pin_in->digital_read() == HIGH) {
+    if (!arg->isSlave && arg->pin_in.digital_read()) {
        arg->status = OpenThermStatus::RESPONSE_WAITING;
     }
     else {
@@ -164,7 +170,7 @@ void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
 
   uint32_t newTs = micros();
   if (arg->status == OpenThermStatus::RESPONSE_WAITING) {
-    if (arg->pin_in->digital_read() == HIGH) {
+    if (arg->pin_in.digital_read()) {
       arg->status = OpenThermStatus::RESPONSE_START_BIT;
       arg->responseTimestamp = newTs;
     }
@@ -174,7 +180,7 @@ void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
     }
   }
   else if (arg->status == OpenThermStatus::RESPONSE_START_BIT) {
-    if ((newTs - arg->responseTimestamp < 750) && arg->pin_in->digital_read() == LOW) {
+    if ((newTs - arg->responseTimestamp < 750) && !arg->pin_in.digital_read()) {
       arg->status = OpenThermStatus::RESPONSE_RECEIVING;
       arg->responseTimestamp = newTs;
       arg->responseBitIndex = 0;
@@ -187,7 +193,7 @@ void ICACHE_RAM_ATTR OpenThermStore::gpio_intr(OpenThermStore *arg)
   else if (arg->status == OpenThermStatus::RESPONSE_RECEIVING) {
     if ((newTs - arg->responseTimestamp) > 750) {
       if (arg->responseBitIndex < 32) {
-        arg->response = (arg->response << 1) | !arg->pin_in->digital_read();
+        arg->response = (arg->response << 1) | !arg->pin_in.digital_read();
         arg->responseTimestamp = newTs;
         arg->responseBitIndex++;
       }
