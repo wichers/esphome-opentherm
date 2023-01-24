@@ -27,7 +27,7 @@ class OpenThermGWClimate : public climate::Climate, public Component {
   climate::ClimateTraits traits() override;
 
   void processRequest(uint32_t request, OpenThermResponseStatus status);
-  void processResponse(uint32_t &response, OpenThermResponseStatus status);
+  void processResponse(uint32_t request, uint32_t &response, OpenThermResponseStatus status);
 
   void process_Master_MSG_COMMAND(uint32_t &request);
   void process_Master_MSG_DATE(uint32_t &request);

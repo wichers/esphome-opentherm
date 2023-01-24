@@ -138,7 +138,7 @@ void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatu
 
     uint32_t response = sOT.sendRequest(request);
     OpenThermResponseStatus resp_status = sOT.getLastResponseStatus();
-    processResponse(response, resp_status);
+    processResponse(request, response, resp_status);
 
     if (resp_status == OpenThermResponseStatus::SUCCESS) {
       //ESP_LOGD(TAG, "G [%d] [%03d] [%04X]", getMessageType(response), getDataID(response), getUInt16(response));
@@ -146,7 +146,7 @@ void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatu
     }
 }
 
-void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseStatus status) {
+void OpenThermGWClimate::processResponse(uint32_t request, uint32_t &response, OpenThermResponseStatus status) {
     
     // slave/boiler response
     OpenThermMessageType msg_type = getMessageType(response);
@@ -156,6 +156,11 @@ void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseSt
 
     if (status != OpenThermResponseStatus::SUCCESS) {
       ESP_LOGD(TAG, "ERROR, response status (%s)", statusToString(status));
+      return;
+    }
+
+    if (id != getDataID(request)) {
+      ESP_LOGD(TAG, "ERROR, response ID doesn't match request ID");
       return;
     }
 
