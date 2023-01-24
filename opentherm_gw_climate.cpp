@@ -137,11 +137,13 @@ void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatu
     }
 
     uint32_t response = sOT.sendRequest(request);
-    status = sOT.getLastResponseStatus();
-    processResponse(response, status);
+    OpenThermResponseStatus resp_status = sOT.getLastResponseStatus();
+    processResponse(response, resp_status);
 
-    //ESP_LOGD(TAG, "G [%d] [%03d] [%04X]", getMessageType(response), getDataID(response), getUInt16(response));
-    mOT.sendResponse(response);
+    if (resp_status == OpenThermResponseStatus::SUCCESS) {
+      //ESP_LOGD(TAG, "G [%d] [%03d] [%04X]", getMessageType(response), getDataID(response), getUInt16(response));
+      mOT.sendResponse(response);
+    }
 }
 
 void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseStatus status) {
@@ -156,6 +158,9 @@ void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseSt
       ESP_LOGD(TAG, "ERROR, response status (%s)", statusToString(status));
       return;
     }
+
+    if (msg_type != OpenThermMessageType::READ_ACK && msg_type != OpenThermMessageType::WRITE_ACK)
+      return;
 
     switch (id) {
       case MSG_BURNER_STARTS:
