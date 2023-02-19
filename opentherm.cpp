@@ -54,14 +54,19 @@ void OpenThermChannel::loop()
   }
   else if (st == OpenThermStatus::RESPONSE_INVALID) {
     this->store_.status = OpenThermStatus::DELAY;
-    responseStatus = OpenThermResponseStatus::INVALID;
+    responseStatus = OpenThermResponseStatus::INVSTART;
     if (process_response_callback) {
       process_response_callback(this->store_.response, responseStatus);
     }
   }
   else if (st == OpenThermStatus::RESPONSE_READY) {
     this->store_.status = OpenThermStatus::DELAY;
-    responseStatus = (isSlave ? isValidResponse(this->store_.response) : isValidRequest(this->store_.response)) ? OpenThermResponseStatus::SUCCESS : OpenThermResponseStatus::INVALID;
+    if (parity(this->store_.response))
+      responseStatus = OpenThermResponseStatus::INVPARITY;
+    else if (isSlave)
+      responseStatus = isValidResponse(this->store_.response) ? OpenThermResponseStatus::SUCCESS : OpenThermResponseStatus::INVMSGTYPE;
+    else
+      responseStatus = isValidRequest(this->store_.response) ? OpenThermResponseStatus::SUCCESS : OpenThermResponseStatus::INVMSGTYPE;
     if (process_response_callback) {
       process_response_callback(this->store_.response, responseStatus);
     }
@@ -256,16 +261,14 @@ uint32_t modifyMsgData(uint32_t msg, uint16_t data)
 
 bool isValidResponse(uint32_t response)
 {
-  if (parity(response)) return false;
   uint8_t msgType = (response << 1) >> 29;
-  return msgType == READ_ACK || msgType == WRITE_ACK;
+  return msgType == READ_ACK || msgType == WRITE_ACK || msgType == DATA_INVALID || msgType == UNKNOWN_DATA_ID;
 }
 
 bool isValidRequest(uint32_t request)
 {
-  if (parity(request)) return false;
   uint8_t msgType = (request << 1) >> 29;
-  return msgType == READ_DATA || msgType == WRITE_DATA;
+  return msgType == READ_DATA || msgType == WRITE_DATA || msgType == INVALID_DATA;
 }
 
 const char *statusToString(OpenThermResponseStatus status)
@@ -273,10 +276,12 @@ const char *statusToString(OpenThermResponseStatus status)
   switch (status) {
     case NONE:  return "NONE";
     case SUCCESS: return "SUCCESS";
-    case INVALID: return "INVALID";
     case TIMEOUT: return "TIMEOUT";
-    default:    return "UNKNOWN";
+    case INVSTART: return "INVSTART";
+    case INVPARITY: return "INVPARITY";
+    case INVMSGTYPE: return "INVMSGTYPE";
   }
+  return "UNKNOWN";
 }
 
 const char *messageTypeToString(OpenThermMessageType message_type)
