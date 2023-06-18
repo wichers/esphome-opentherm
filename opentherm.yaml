@@ -58,13 +58,16 @@ climate:
     ot->fault_indication = new BinarySensor();
     ot->fault_indication->set_name("Fault Indication");
     App.register_binary_sensor(ot->fault_indication);
-    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
+    ot->boiler_water_temp = new Sensor();
+    ot->boiler_water_temp->set_name("Boiler Water Temperature");
     App.register_sensor(ot->boiler_water_temp);
-    ot->dhw_temperature = new Sensor("DHW Temperature");
+    ot->dhw_temperature = new Sensor();
+    ot->dhw_temperature->set_name("DHW Temperature");
     App.register_sensor(ot->dhw_temperature);
-    ot->return_water_temperature = new Sensor("Return Water Temperature");
+    ot->return_water_temperature = new Sensor();
+    ot->return_water_temperature->set_name("Return Water Temperature");
     App.register_sensor(ot->return_water_temperature);
-    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
+    ot->relative_modulation_level = new Sensor();
     App.register_climate(ot);
     return {ot};
   climates:
