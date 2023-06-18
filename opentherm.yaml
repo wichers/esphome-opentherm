@@ -68,6 +68,8 @@ climate:
     ot->return_water_temperature->set_name("Return Water Temperature");
     App.register_sensor(ot->return_water_temperature);
     ot->relative_modulation_level = new Sensor();
+    ot->relative_modulation_level->set_name("Relative Modulation Level");
+    App.register_sensor(ot->relative_modulation_level);
     App.register_climate(ot);
     return {ot};
   climates:
