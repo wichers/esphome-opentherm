@@ -4,14 +4,13 @@ esphome:
     - opentherm.cpp
     - opentherm_gw_climate.h
     - opentherm_gw_climate.cpp
-  name: opentherm_gateway
+  name: openthermgateway
   platform: ESP8266
   board: d1_mini
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
 
 # Enable logging
 logger:
@@ -43,24 +42,61 @@ climate:
     boiler_out->set_flags(gpio::FLAG_OUTPUT);
     auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
     App.register_component(ot);
-    ot->ch_active = new BinarySensor("CH Active");
+    
+    ot->ch_active = new BinarySensor();
+    ot->ch_active->set_name("CH Active");
+    ot->ch_active->set_object_id("CH_Active");
     App.register_binary_sensor(ot->ch_active);
-    ot->dhw_active = new BinarySensor("DHW Active");
+
+    ot->dhw_active = new BinarySensor();
+    ot->dhw_active->set_name("DHW Active");
+    ot->dhw_active->set_object_id("DHW_Active");
     App.register_binary_sensor(ot->dhw_active);
-    ot->flame_on = new BinarySensor("Flame On");
+
+    ot->flame_on = new BinarySensor();
+    ot->flame_on->set_name("Flame On");
+    ot->flame_on->set_object_id("Flame_On");
     App.register_binary_sensor(ot->flame_on);
-    ot->diagnostic_event = new BinarySensor("Diagnostic Event");
+
+    ot->diagnostic_event = new BinarySensor();
+    ot->diagnostic_event->set_name("Diagnostic Event");
+    ot->diagnostic_event->set_object_id("Diagnostic_Event");
     App.register_binary_sensor(ot->diagnostic_event);
-    ot->fault_indication = new BinarySensor("Fault Indication");
+
+    ot->fault_indication = new BinarySensor();
+    ot->fault_indication->set_name("Fault Indication");
+    ot->fault_indication->set_object_id("Fault_Indication");
     App.register_binary_sensor(ot->fault_indication);
-    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
+
+    ot->control_setpoint = new Sensor();
+    ot->control_setpoint->set_name("Control Setpoint");
+    ot->control_setpoint->set_object_id("Control_Setpoint");
+    App.register_sensor(ot->control_setpoint);
+
+    ot->boiler_water_temp = new Sensor();
+    ot->boiler_water_temp->set_name("Boiler Water Temperature");
+    ot->boiler_water_temp->set_object_id("Boiler_Water_Temperature");
+    ot->boiler_water_temp->set_device_class("Temperature");
     App.register_sensor(ot->boiler_water_temp);
-    ot->dhw_temperature = new Sensor("DHW Temperature");
-    App.register_sensor(ot->dhw_temperature);
-    ot->return_water_temperature = new Sensor("Return Water Temperature");
+
+    ot->return_water_temperature = new Sensor();
+    ot->return_water_temperature->set_name("Return Water Temperature");
+    ot->return_water_temperature->set_object_id("Return_Water_Temperature");
     App.register_sensor(ot->return_water_temperature);
-    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
-    App.register_climate(ot);
+
+    ot->dhw_temperature = new Sensor();
+    ot->dhw_temperature->set_name("DHW Temperature");
+    ot->dhw_temperature->set_object_id("DHW_Temperature");
+    App.register_sensor(ot->dhw_temperature);
+
+    ot->relative_modulation_level = new Sensor();
+    ot->relative_modulation_level->set_name("Relative Modulation Level");
+    ot->relative_modulation_level->set_object_id("Relative_Modulation_Level");
+    App.register_sensor(ot->relative_modulation_level);
+    
+    App.register_component(ot);
+    
     return {ot};
+
   climates:
-    - name: "livingroom"
+    - name: "esphome_climate"

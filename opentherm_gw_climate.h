@@ -1,19 +1,13 @@
 #pragma once
 
-#include "esphome/core/component.h"
-#include "esphome/core/automation.h"
-#include "esphome/components/sensor/sensor.h"
-#include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/climate/climate.h"
-#include "esphome/components/climate/climate_mode.h"
-#include "esphome/components/climate/climate_traits.h"
-#include "esphome/components/custom/climate/custom_climate.h"
+#include "esphome.h"
 #include "opentherm.h"
 
 namespace esphome {
 namespace opentherm {
 
-class OpenThermGWClimate : public climate::Climate, public Component {
+	
+class OpenThermGWClimate : public climate::Climate, public Component, public api::CustomAPIDevice {
  public:
   OpenThermGWClimate(InternalGPIOPin *m_pin_in, InternalGPIOPin *m_pin_out, InternalGPIOPin *s_pin_in, InternalGPIOPin *s_pin_out);
   void setup() override;
@@ -28,6 +22,8 @@ class OpenThermGWClimate : public climate::Climate, public Component {
 
   void processRequest(uint32_t request, OpenThermResponseStatus status);
   void processResponse(uint32_t request, uint32_t &response, OpenThermResponseStatus status);
+
+  void set_ch_override_setpoint(float setpoint);
 
   void process_Master_MSG_COMMAND(uint32_t &request);
   void process_Master_MSG_DATE(uint32_t &request);
@@ -108,6 +104,8 @@ public:
   // the configured setpoint instead of the one received from the thermostat.
   optional<float> max_ch_water_setpoint;
 
+  float ch_override_setpoint = 0;
+
   binary_sensor::BinarySensor *ch2_active{nullptr};
   binary_sensor::BinarySensor *ch_active{nullptr};
   binary_sensor::BinarySensor *cooling_active{nullptr};
@@ -115,6 +113,7 @@ public:
   binary_sensor::BinarySensor *diagnostic_event{nullptr};
   binary_sensor::BinarySensor *fault_indication{nullptr};
   binary_sensor::BinarySensor *flame_on{nullptr};
+  sensor::Sensor *control_setpoint{nullptr};
   sensor::Sensor *boiler_water_temp{nullptr};
   sensor::Sensor *burner_operation_hours{nullptr};
   sensor::Sensor *burner_starts{nullptr};
