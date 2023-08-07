@@ -4,14 +4,13 @@ esphome:
     - opentherm.cpp
     - opentherm_gw_climate.h
     - opentherm_gw_climate.cpp
-  name: opentherm_gateway
+  name: openthermgateway
   platform: ESP8266
   board: d1_mini
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
 
 # Enable logging
 logger:
@@ -43,26 +42,6 @@ climate:
     boiler_out->set_flags(gpio::FLAG_OUTPUT);
     auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
     App.register_component(ot);
-<<<<<<< Updated upstream
-    ot->ch_active = new BinarySensor("CH Active");
-    App.register_binary_sensor(ot->ch_active);
-    ot->dhw_active = new BinarySensor("DHW Active");
-    App.register_binary_sensor(ot->dhw_active);
-    ot->flame_on = new BinarySensor("Flame On");
-    App.register_binary_sensor(ot->flame_on);
-    ot->diagnostic_event = new BinarySensor("Diagnostic Event");
-    App.register_binary_sensor(ot->diagnostic_event);
-    ot->fault_indication = new BinarySensor("Fault Indication");
-    App.register_binary_sensor(ot->fault_indication);
-    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
-    App.register_sensor(ot->boiler_water_temp);
-    ot->dhw_temperature = new Sensor("DHW Temperature");
-    App.register_sensor(ot->dhw_temperature);
-    ot->return_water_temperature = new Sensor("Return Water Temperature");
-    App.register_sensor(ot->return_water_temperature);
-    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
-    App.register_climate(ot);
-=======
     
     ot->ch_active = new BinarySensor();
     ot->ch_active->set_name("CH Active");
@@ -130,7 +109,7 @@ climate:
     
     App.register_component(ot);
     
->>>>>>> Stashed changes
     return {ot};
+
   climates:
-    - name: "livingroom"
+    - name: "esphome_climate"
