@@ -4,7 +4,7 @@ esphome:
     - opentherm.cpp
     - opentherm_gw_climate.h
     - opentherm_gw_climate.cpp
-  name: opentherm_gateway
+  name: openthermgateway
   platform: ESP32
   board: esp-wrover-kit
 
@@ -12,10 +12,9 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
-
 # Enable logging
 logger:
-  baud_rate: 0
+  #baud_rate: 0
   level: DEBUG
 
 api:
@@ -31,41 +30,86 @@ climate:
   lambda: |-
     auto thermostat_in = new esphome::esp32::ESP32InternalGPIOPin();
     thermostat_in->set_pin(GPIO_NUM_26);
-    thermostat_in->pin_mode(gpio::FLAG_INPUT);
+    thermostat_in->set_flags(gpio::FLAG_INPUT);
     auto thermostat_out = new esphome::esp32::ESP32InternalGPIOPin();
     thermostat_out->set_pin(GPIO_NUM_17);
-    thermostat_out->pin_mode(gpio::FLAG_OUTPUT);
+    thermostat_out->set_flags(gpio::FLAG_OUTPUT);
     auto boiler_in = new esphome::esp32::ESP32InternalGPIOPin();
     boiler_in->set_pin(GPIO_NUM_25);
-    boiler_in->pin_mode(gpio::FLAG_INPUT);
+    boiler_in->set_flags(gpio::FLAG_INPUT);
     auto boiler_out = new esphome::esp32::ESP32InternalGPIOPin();
     boiler_out->set_pin(GPIO_NUM_16);
-    boiler_out->pin_mode(gpio::FLAG_OUTPUT);
+    boiler_out->set_flags(gpio::FLAG_OUTPUT);
     auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
     App.register_component(ot);
+    
     ot->ch_active = new BinarySensor();
     ot->ch_active->set_name("CH Active");
+    ot->ch_active->set_object_id("CH_Active");
+    ot->ch_active->set_icon("mdi:radiator");
     App.register_binary_sensor(ot->ch_active);
+
     ot->dhw_active = new BinarySensor();
     ot->dhw_active->set_name("DHW Active");
+    ot->dhw_active->set_object_id("DHW_Active");
+    ot->dhw_active->set_icon("mdi:shower-head");
     App.register_binary_sensor(ot->dhw_active);
+
     ot->flame_on = new BinarySensor();
     ot->flame_on->set_name("Flame On");
+    ot->flame_on->set_object_id("Flame_On");
+    ot->flame_on->set_icon("mdi:fire");
     App.register_binary_sensor(ot->flame_on);
+
     ot->diagnostic_event = new BinarySensor();
     ot->diagnostic_event->set_name("Diagnostic Event");
+    ot->diagnostic_event->set_object_id("Diagnostic_Event");
+    ot->diagnostic_event->set_icon("mdi:alert");
     App.register_binary_sensor(ot->diagnostic_event);
+
     ot->fault_indication = new BinarySensor();
     ot->fault_indication->set_name("Fault Indication");
+    ot->fault_indication->set_object_id("Fault_Indication");
+    ot->fault_indication->set_icon("mdi:alert");
     App.register_binary_sensor(ot->fault_indication);
-    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
+
+    ot->control_setpoint = new Sensor();
+    ot->control_setpoint->set_name("Control Setpoint");
+    ot->control_setpoint->set_object_id("Control_Setpoint");
+    ot->control_setpoint->set_icon("mdi:thermometer-lines");
+    App.register_sensor(ot->control_setpoint);
+
+    ot->boiler_water_temp = new Sensor();
+    ot->boiler_water_temp->set_name("Boiler Water Temperature");
+    ot->boiler_water_temp->set_object_id("Boiler_Water_Temperature");
+    ot->boiler_water_temp->set_icon("mdi:water-thermometer");
+    ot->boiler_water_temp->set_state_class(STATE_CLASS_MEASUREMENT);
     App.register_sensor(ot->boiler_water_temp);
-    ot->dhw_temperature = new Sensor("DHW Temperature");
-    App.register_sensor(ot->dhw_temperature);
-    ot->return_water_temperature = new Sensor("Return Water Temperature");
+
+    ot->return_water_temperature = new Sensor();
+    ot->return_water_temperature->set_name("Return Water Temperature");
+    ot->return_water_temperature->set_object_id("Return_Water_Temperature");
+    ot->return_water_temperature->set_icon("mdi:water-thermometer");
+    ot->return_water_temperature->set_state_class(STATE_CLASS_MEASUREMENT);
     App.register_sensor(ot->return_water_temperature);
-    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
-    App.register_climate(ot);
+
+    ot->dhw_temperature = new Sensor();
+    ot->dhw_temperature->set_name("DHW Temperature");
+    ot->dhw_temperature->set_object_id("DHW_Temperature");
+    ot->dhw_temperature->set_icon("mdi:water-thermometer");
+    ot->dhw_temperature->set_state_class(STATE_CLASS_MEASUREMENT);
+    App.register_sensor(ot->dhw_temperature);
+
+    ot->relative_modulation_level = new Sensor();
+    ot->relative_modulation_level->set_name("Relative Modulation Level");
+    ot->relative_modulation_level->set_object_id("Relative_Modulation_Level");
+    ot->relative_modulation_level->set_icon("mdi:fire-circle");
+    ot->relative_modulation_level->set_state_class(STATE_CLASS_MEASUREMENT);
+    App.register_sensor(ot->relative_modulation_level);
+    
+    App.register_component(ot);
+    
     return {ot};
+
   climates:
-    - name: "livingroom"
+    - name: "esphome_climate"
