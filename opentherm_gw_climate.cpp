@@ -23,6 +23,9 @@ void OpenThermGWClimate::setup() {
 
   mOT.setup(std::bind(&OpenThermGWClimate::processRequest, this, std::placeholders::_1, std::placeholders::_2));
   sOT.setup(nullptr);
+  
+  register_service(&OpenThermGWClimate::set_ch_override_setpoint, "CH temperature override setpoint", {"setpoint"});
+
 }
 
 void OpenThermGWClimate::loop()
@@ -333,9 +336,10 @@ void OpenThermGWClimate::process_Master_MSG_STATUS(uint32_t &request) {
     //ESP_LOGD(TAG, "master_otc_enabled: %s", YESNO(master_otc_enabled));
     //ESP_LOGD(TAG, "master_ch2_enabled: %s", YESNO(master_ch2_enabled));
 
-    //if (this->away) {
-      
-    //}
+	if (this->ch_override_setpoint != 0) {
+		uint16_t data = getUInt16(request) | 0b100000000;
+        request = modifyMsgData(request, data);
+    }
 }
 
 void OpenThermGWClimate::process_Slave_MSG_STATUS(uint32_t &response) {
@@ -387,12 +391,19 @@ void OpenThermGWClimate::process_Slave_MSG_STATUS(uint32_t &response) {
     }
 }
 
+//
+void OpenThermGWClimate::set_ch_override_setpoint(float setpoint) {
+	this->ch_override_setpoint = setpoint;	
+}
+
 // #1: Control setpoint ie CH water temperature setpoint (°C)
 void OpenThermGWClimate::process_Master_MSG_TSET(uint32_t &request) {
     float control_setpoint = getFloat(request);
     ESP_LOGD(TAG, "CH water temperature setpoint (°C): %f", control_setpoint);
-    if (control_setpoint != this->target_temperature) {
-      //request = modifyMsgData(request, temperatureToData(this->target_temperature));
+    ESP_LOGD(TAG, "CH water override temperature setpoint (°C): %f", ch_override_setpoint);
+
+    if (this->ch_override_setpoint != 0) {
+        request = modifyMsgData(request, temperatureToData(ch_override_setpoint));
     }
 }
 
