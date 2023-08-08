@@ -24,7 +24,7 @@ void OpenThermGWClimate::setup() {
   mOT.setup(std::bind(&OpenThermGWClimate::processRequest, this, std::placeholders::_1, std::placeholders::_2));
   sOT.setup(nullptr);
   
-  register_service(&OpenThermGWClimate::set_ch_override_setpoint, "CH temperature override setpoint", {"setpoint"});
+  register_service(&OpenThermGWClimate::set_ch_override_setpoint, "CH_temperature_override_setpoint", {"setpoint"});
 
 }
 
