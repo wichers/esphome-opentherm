@@ -15,7 +15,7 @@ namespace opentherm {
 
 class OpenThermGWClimate : public climate::Climate, public Component {
  public:
-  OpenThermGWClimate(InternalGPIOPin *m_pin_in, InternalGPIOPin *m_pin_out, InternalGPIOPin *s_pin_in, InternalGPIOPin *s_pin_out);
+  OpenThermGWClimate();
   void setup() override;
   void dump_config() override;
   void loop() override;
@@ -108,10 +108,10 @@ public:
   // the configured setpoint instead of the one received from the thermostat.
   optional<float> max_ch_water_setpoint;
 
-  void set_thermostat_in_pin(GPIOPin *thermostat_in_pin) { mOT.set_pin_in(thermostat_in_pin); }
-  void set_thermostat_out_pin(GPIOPin *thermostat_out_pin) { mOT.set_pin_out(thermostat_out_pin); }
-  void set_boiler_in_pin(GPIOPin *boiler_in_pin) { sOT.set_pin_in(boiler_in_pin); }
-  void set_boiler_out_pin(GPIOPin *boiler_out_pin) { sOT.set_pin_out(boiler_out_pin); }
+  void set_thermostat_in_pin(InternalGPIOPin *thermostat_in_pin) { mOT.set_pin_in(thermostat_in_pin); }
+  void set_thermostat_out_pin(InternalGPIOPin *thermostat_out_pin) { mOT.set_pin_out(thermostat_out_pin); }
+  void set_boiler_in_pin(InternalGPIOPin *boiler_in_pin) { sOT.set_pin_in(boiler_in_pin); }
+  void set_boiler_out_pin(InternalGPIOPin *boiler_out_pin) { sOT.set_pin_out(boiler_out_pin); }
 
   binary_sensor::BinarySensor *is_ch2_active{nullptr};
   binary_sensor::BinarySensor *is_ch_active{nullptr};

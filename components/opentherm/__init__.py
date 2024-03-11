@@ -218,10 +218,10 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(CONF_ID): cv.declare_id(OpenThermGWComponent),
-            cv.Required(CONF_THERMOSTAT_IN_PIN): pins.gpio_input_pin_schema,
-            cv.Required(CONF_THERMOSTAT_OUT_PIN): pins.gpio_output_pin_schema,
-            cv.Required(CONF_BOILER_IN_PIN): pins.gpio_input_pin_schema,
-            cv.Required(CONF_BOILER_OUT_PIN): pins.gpio_output_pin_schema,
+            cv.Required(CONF_THERMOSTAT_IN_PIN): pins.internal_gpio_input_pin_schema,
+            cv.Required(CONF_THERMOSTAT_OUT_PIN): pins.internal_gpio_input_pin_schema,
+            cv.Required(CONF_BOILER_IN_PIN): pins.internal_gpio_input_pin_schema,
+            cv.Required(CONF_BOILER_OUT_PIN): pins.internal_gpio_input_pin_schema,
         }
     )
     .extend(opentherm_sensors_schemas)
