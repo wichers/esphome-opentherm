@@ -38,7 +38,7 @@ void OpenThermGWClimate::control(const climate::ClimateCall &call) {
   //if (call.get_away().has_value())
   //    this->away = *call.get_away();
 
-  // Set to 0 to pass along the value specified by the thermostat. To stop the boiler heating the house, 
+  // Set to 0 to pass along the value specified by the thermostat. To stop the boiler heating the house,
   // set the control setpoint to some low value and clear the CH enable bit using the CH command.
 
   this->publish_state();
@@ -136,7 +136,7 @@ void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatu
 }
 
 void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseStatus status) {
-    
+
     // slave/boiler response
     OpenThermMessageID id = getDataID(response);
     uint16_t data = getUInt16(response);
@@ -310,7 +310,7 @@ void OpenThermGWClimate::process_Master_MSG_STATUS(uint32_t &request) {
     //ESP_LOGD(TAG, "master_ch2_enabled: %s", YESNO(master_ch2_enabled));
 
     //if (this->away) {
-      
+
     //}
 }
 
@@ -333,26 +333,26 @@ void OpenThermGWClimate::process_Slave_MSG_STATUS(uint32_t &response) {
     //ESP_LOGD(TAG, "slave_ch2_active: %s", YESNO(slave_ch2_active));
     //ESP_LOGD(TAG, "slave_diagnostic_event: %s", YESNO(slave_diagnostic_event));
 
-    if (this->fault_indication != nullptr) {
-      this->fault_indication->publish_state(slave_fault_indication);
+    if (this->is_fault_indication != nullptr) {
+      this->is_fault_indication->publish_state(slave_fault_indication);
     }
-    if (this->ch_active != nullptr) {
-      this->ch_active->publish_state(slave_ch_active);
+    if (this->is_ch_active != nullptr) {
+      this->is_ch_active->publish_state(slave_ch_active);
     }
-    if (this->dhw_active != nullptr) {
-      this->dhw_active->publish_state(slave_dhw_active);
+    if (this->is_dhw_active != nullptr) {
+      this->is_dhw_active->publish_state(slave_dhw_active);
     }
-    if (this->flame_on != nullptr) {
-      this->flame_on->publish_state(slave_flame_on);
+    if (this->is_flame_on != nullptr) {
+      this->is_flame_on->publish_state(slave_flame_on);
     }
-    if (this->cooling_active != nullptr) {
-      this->cooling_active->publish_state(slave_cooling_active);
+    if (this->is_cooling_active != nullptr) {
+      this->is_cooling_active->publish_state(slave_cooling_active);
     }
-    if (this->ch2_active != nullptr) {
-      this->ch2_active->publish_state(slave_ch2_active);
+    if (this->is_ch2_active != nullptr) {
+      this->is_ch2_active->publish_state(slave_ch2_active);
     }
-    if (this->diagnostic_event != nullptr) {
-      this->diagnostic_event->publish_state(slave_diagnostic_event);
+    if (this->is_diagnostic_event != nullptr) {
+      this->is_diagnostic_event->publish_state(slave_diagnostic_event);
     }
 
     if (slave_fault_indication) {

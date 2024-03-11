@@ -113,13 +113,13 @@ public:
   void set_boiler_in_pin(GPIOPin *boiler_in_pin) { sOT.set_pin_in(boiler_in_pin); }
   void set_boiler_out_pin(GPIOPin *boiler_out_pin) { sOT.set_pin_out(boiler_out_pin); }
 
-  binary_sensor::BinarySensor *ch2_active{nullptr};
-  binary_sensor::BinarySensor *ch_active{nullptr};
-  binary_sensor::BinarySensor *cooling_active{nullptr};
-  binary_sensor::BinarySensor *dhw_active{nullptr};
-  binary_sensor::BinarySensor *diagnostic_event{nullptr};
-  binary_sensor::BinarySensor *fault_indication{nullptr};
-  binary_sensor::BinarySensor *flame_on{nullptr};
+  binary_sensor::BinarySensor *is_ch2_active{nullptr};
+  binary_sensor::BinarySensor *is_ch_active{nullptr};
+  binary_sensor::BinarySensor *is_cooling_active{nullptr};
+  binary_sensor::BinarySensor *is_dhw_active{nullptr};
+  binary_sensor::BinarySensor *is_diagnostic_event{nullptr};
+  binary_sensor::BinarySensor *is_fault_indication{nullptr};
+  binary_sensor::BinarySensor *is_flame_on{nullptr};
   sensor::Sensor *boiler_water_temp{nullptr};
   sensor::Sensor *burner_operation_hours{nullptr};
   sensor::Sensor *burner_starts{nullptr};
@@ -141,13 +141,13 @@ public:
   sensor::Sensor *solar_collector_temperature{nullptr};
   sensor::Sensor *solar_storage_temperature{nullptr};
 
-  void set_ch2_active(binary_sensor::BinarySensor *ch2_active) {this->ch2_active =ch2_active; };
-  void set_ch_active(binary_sensor::BinarySensor *ch_active) {this->ch_active =ch_active; };
-  void set_cooling_active(binary_sensor::BinarySensor *cooling_active) {this->cooling_active =cooling_active; };
-  void set_dhw_active(binary_sensor::BinarySensor *dhw_active) {this->dhw_active =dhw_active; };
-  void set_diagnostic_event(binary_sensor::BinarySensor *diagnostic_event) {this->diagnostic_event =diagnostic_event; };
-  void set_fault_indication(binary_sensor::BinarySensor *fault_indication) {this->fault_indication =fault_indication; };
-  void set_flame_on(binary_sensor::BinarySensor *flame_on) {this->flame_on =flame_on; };
+  void set_is_ch2_active(binary_sensor::BinarySensor *ch2_active) {this->is_ch2_active =ch2_active; };
+  void set_is_ch_active(binary_sensor::BinarySensor *ch_active) {this->is_ch_active =ch_active; };
+  void set_is_cooling_active(binary_sensor::BinarySensor *cooling_active) {this->is_cooling_active =cooling_active; };
+  void set_is_dhw_active(binary_sensor::BinarySensor *dhw_active) {this->is_dhw_active =dhw_active; };
+  void set_is_diagnostic_event(binary_sensor::BinarySensor *diagnostic_event) {this->is_diagnostic_event =diagnostic_event; };
+  void set_is_fault_indication(binary_sensor::BinarySensor *fault_indication) {this->is_fault_indication =fault_indication; };
+  void set_is_flame_on(binary_sensor::BinarySensor *flame_on) {this->is_flame_on =flame_on; };
   void set_boiler_water_temp(sensor::Sensor *boiler_water_temp) {this->boiler_water_temp = boiler_water_temp;};
   void set_burner_operation_hours(sensor::Sensor *burner_operation_hours) {this->burner_operation_hours = burner_operation_hours;};
   void set_burner_starts(sensor::Sensor *burner_starts) {this->burner_starts = burner_starts;};

@@ -199,26 +199,26 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
-def to_code(config):
+async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    yield cg.register_component(var, config)
+    await cg.register_component(var, config)
 
-    thermostat_in_pin = cg.gpio_pin_expression(config[CONF_THERMOSTAT_IN_PIN])
+    thermostat_in_pin = await cg.gpio_pin_expression(config[CONF_THERMOSTAT_IN_PIN])
     cg.add(var.set_thermostat_in_pin(thermostat_in_pin))
-    thermostat_out_pin = cg.gpio_pin_expression(config[CONF_THERMOSTAT_OUT_PIN])
+    thermostat_out_pin = await cg.gpio_pin_expression(config[CONF_THERMOSTAT_OUT_PIN])
     cg.add(var.set_thermostat_out_pin(thermostat_out_pin))
-    boiler_in_pin = cg.gpio_pin_expression(config[CONF_BOILER_IN_PIN])
+    boiler_in_pin = await cg.gpio_pin_expression(config[CONF_BOILER_IN_PIN])
     cg.add(var.set_boiler_in_pin(boiler_in_pin))
-    boiler_out_pin = cg.gpio_pin_expression(config[CONF_BOILER_OUT_PIN])
+    boiler_out_pin = await cg.gpio_pin_expression(config[CONF_BOILER_OUT_PIN])
     cg.add(var.set_boiler_out_pin(boiler_out_pin))
 
-    cg.add(var.set_ch2_active(config[CONF_IS_CH2_ACTIVE]))
-    cg.add(var.set_ch_active(config[CONF_IS_CH_ACTIVE]))
-    cg.add(var.set_cooling_active(config[CONF_IS_COOLING_ACTIVE]))
-    cg.add(var.set_dhw_active(config[CONF_IS_DHW_ACTIVE]))
-    cg.add(var.set_diagnostic_event(config[CONF_IS_DIAGNOSTIC_EVENT]))
-    cg.add(var.set_fault_indication(config[CONF_IS_FAULT_INDICATION]))
-    cg.add(var.set_flame_on(config[CONF_IS_FLAME_ON]))
+    cg.add(var.set_is_ch2_active(config[CONF_IS_CH2_ACTIVE]))
+    cg.add(var.set_is_ch_active(config[CONF_IS_CH_ACTIVE]))
+    cg.add(var.set_is_cooling_active(config[CONF_IS_COOLING_ACTIVE]))
+    cg.add(var.set_is_dhw_active(config[CONF_IS_DHW_ACTIVE]))
+    cg.add(var.set_is_diagnostic_event(config[CONF_IS_DIAGNOSTIC_EVENT]))
+    cg.add(var.set_is_fault_indication(config[CONF_IS_FAULT_INDICATION]))
+    cg.add(var.set_is_flame_on(config[CONF_IS_FLAME_ON]))
 
     cg.add(var.set_boiler_water_temp(config[CONF_BOILER_WATER_TEMP]))
     cg.add(var.set_burner_operation_hours(config[CONF_BURNER_OPERATION_HOURS]))
