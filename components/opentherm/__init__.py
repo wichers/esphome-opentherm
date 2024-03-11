@@ -47,6 +47,36 @@ CONF_THERMOSTAT_OUT_PIN = "thermostat_out_pin"
 CONF_BOILER_IN_PIN = "boiler_in_pin"
 CONF_BOILER_OUT_PIN = "boiler_out_pin"
 
+helper_opentherm_list = [
+    CONF_BOILER_WATER_TEMP,
+    CONF_BURNER_OPERATION_HOURS,
+    CONF_BURNER_STARTS,
+    CONF_CH_PUMP_OPERATION_HOURS,
+    CONF_CH_PUMP_STARTS,
+    CONF_CH_WATER_PRESSURE,
+    CONF_DHW2_TEMPERATURE,
+    CONF_DHW_BURNER_OPERATION_HOURS,
+    CONF_DHW_BURNER_STARTS,
+    CONF_DHW_FLOW_RATE,
+    CONF_DHW_PUMP_VALVE_OPERATION_HOURS,
+    CONF_DHW_PUMP_VALVE_STARTS,
+    CONF_DHW_TEMPERATURE,
+    CONF_EXHAUST_TEMPERATURE,
+    CONF_FLOW_TEMPERATURE_CH2,
+    CONF_IS_CH2_ACTIVE,
+    CONF_IS_CH_ACTIVE,
+    CONF_IS_COOLING_ACTIVE,
+    CONF_IS_DHW_ACTIVE,
+    CONF_IS_DIAGNOSTIC_EVENT,
+    CONF_IS_FAULT_INDICATION,
+    CONF_IS_FLAME_ON,
+    CONF_OUTSIDE_AIR_TEMPERATURE,
+    CONF_RELATIVE_MODULATION_LEVEL,
+    CONF_RETURN_WATER_TEMPERATURE,
+    CONF_SOLAR_COLLECTOR_TEMPERATURE,
+    CONF_SOLAR_STORAGE_TEMPERATURE,
+]
+
 opentherm_sensors_schemas = cv.Schema(
     {
         cv.Optional(CONF_BOILER_WATER_TEMP): sensor.sensor_schema(
@@ -211,40 +241,14 @@ async def to_code(config):
     cg.add(var.set_boiler_in_pin(boiler_in_pin))
     boiler_out_pin = await cg.gpio_pin_expression(config[CONF_BOILER_OUT_PIN])
     cg.add(var.set_boiler_out_pin(boiler_out_pin))
-
-    cg.add(var.set_is_ch2_active(config[CONF_IS_CH2_ACTIVE]))
-    cg.add(var.set_is_ch_active(config[CONF_IS_CH_ACTIVE]))
-    cg.add(var.set_is_cooling_active(config[CONF_IS_COOLING_ACTIVE]))
-    cg.add(var.set_is_dhw_active(config[CONF_IS_DHW_ACTIVE]))
-    cg.add(var.set_is_diagnostic_event(config[CONF_IS_DIAGNOSTIC_EVENT]))
-    cg.add(var.set_is_fault_indication(config[CONF_IS_FAULT_INDICATION]))
-    cg.add(var.set_is_flame_on(config[CONF_IS_FLAME_ON]))
-
-    cg.add(var.set_boiler_water_temp(config[CONF_BOILER_WATER_TEMP]))
-    cg.add(var.set_burner_operation_hours(config[CONF_BURNER_OPERATION_HOURS]))
-    cg.add(var.set_burner_starts(config[CONF_BURNER_STARTS]))
-    cg.add(var.set_ch_pump_operation_hours(config[CONF_CH_PUMP_OPERATION_HOURS]))
-    cg.add(var.set_ch_pump_starts(config[CONF_CH_PUMP_STARTS]))
-    cg.add(var.set_ch_water_pressure(config[CONF_CH_WATER_PRESSURE]))
-    cg.add(var.set_dhw2_temperature(config[CONF_DHW2_TEMPERATURE]))
-    cg.add(var.set_dhw_burner_operation_hours(config[CONF_DHW_BURNER_OPERATION_HOURS]))
-    cg.add(var.set_dhw_burner_starts(config[CONF_DHW_BURNER_STARTS]))
-    cg.add(var.set_dhw_flow_rate(config[CONF_DHW_FLOW_RATE]))
-    cg.add(
-        var.set_dhw_pump_valve_operation_hours(
-            config[CONF_DHW_PUMP_VALVE_OPERATION_HOURS]
-        )
-    )
-    cg.add(var.set_dhw_pump_valve_starts(config[CONF_DHW_PUMP_VALVE_STARTS]))
-    cg.add(var.set_dhw_temperature(config[CONF_DHW_TEMPERATURE]))
-    cg.add(var.set_exhaust_temperature(config[CONF_EXHAUST_TEMPERATURE]))
-    cg.add(var.set_flow_temperature_ch2(config[CONF_FLOW_TEMPERATURE_CH2]))
-    cg.add(var.set_outside_air_temperature(config[CONF_OUTSIDE_AIR_TEMPERATURE]))
-    cg.add(var.set_relative_modulation_level(config[CONF_RELATIVE_MODULATION_LEVEL]))
-    cg.add(var.set_return_water_temperature(config[CONF_RETURN_WATER_TEMPERATURE]))
-    cg.add(
-        var.set_solar_collector_temperature(config[CONF_SOLAR_COLLECTOR_TEMPERATURE])
-    )
-    cg.add(var.set_solar_storage_temperature(config[CONF_SOLAR_STORAGE_TEMPERATURE]))
+    for k in helper_opentherm_list:
+        if k in config:
+            sens = None
+            if "is_" in k:
+                sens = yield binary_sensor.new_binary_sensor(config[k])
+            else:
+                sens = yield sensor.new_sensor(config[k])
+            func = getattr(var, "set_" + k)
+            cg.add(func(sens))
 
     cg.add(cg.App.register_climate(var))
