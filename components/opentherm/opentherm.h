@@ -21,8 +21,10 @@ namespace opentherm {
 enum OpenThermResponseStatus {
 NONE,
 SUCCESS,
-INVALID,
-TIMEOUT
+TIMEOUT,
+INVSTART,
+INVPARITY,
+INVMSGTYPE,
 };
 
 

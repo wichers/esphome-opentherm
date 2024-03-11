@@ -20,6 +20,7 @@ web_server:
 sensor:
 binary_sensor:
 
+<<<<<<< HEAD
 external_components:
   - source:
       type: git
@@ -60,3 +61,48 @@ openthermgateway:
     name: "Return water temperature"
   relative_modulation_level:
     name: "Relative modulation level"
+=======
+climate:
+- platform: custom
+  lambda: |-
+    auto thermostat_in = new esphome::esp32::ESP32InternalGPIOPin();
+    thermostat_in->set_pin(GPIO_NUM_26);
+    thermostat_in->pin_mode(gpio::FLAG_INPUT);
+    auto thermostat_out = new esphome::esp32::ESP32InternalGPIOPin();
+    thermostat_out->set_pin(GPIO_NUM_17);
+    thermostat_out->pin_mode(gpio::FLAG_OUTPUT);
+    auto boiler_in = new esphome::esp32::ESP32InternalGPIOPin();
+    boiler_in->set_pin(GPIO_NUM_25);
+    boiler_in->pin_mode(gpio::FLAG_INPUT);
+    auto boiler_out = new esphome::esp32::ESP32InternalGPIOPin();
+    boiler_out->set_pin(GPIO_NUM_16);
+    boiler_out->pin_mode(gpio::FLAG_OUTPUT);
+    auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
+    App.register_component(ot);
+    ot->ch_active = new BinarySensor();
+    ot->ch_active->set_name("CH Active");
+    App.register_binary_sensor(ot->ch_active);
+    ot->dhw_active = new BinarySensor();
+    ot->dhw_active->set_name("DHW Active");
+    App.register_binary_sensor(ot->dhw_active);
+    ot->flame_on = new BinarySensor();
+    ot->flame_on->set_name("Flame On");
+    App.register_binary_sensor(ot->flame_on);
+    ot->diagnostic_event = new BinarySensor();
+    ot->diagnostic_event->set_name("Diagnostic Event");
+    App.register_binary_sensor(ot->diagnostic_event);
+    ot->fault_indication = new BinarySensor();
+    ot->fault_indication->set_name("Fault Indication");
+    App.register_binary_sensor(ot->fault_indication);
+    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
+    App.register_sensor(ot->boiler_water_temp);
+    ot->dhw_temperature = new Sensor("DHW Temperature");
+    App.register_sensor(ot->dhw_temperature);
+    ot->return_water_temperature = new Sensor("Return Water Temperature");
+    App.register_sensor(ot->return_water_temperature);
+    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
+    App.register_climate(ot);
+    return {ot};
+  climates:
+    - name: "livingroom"
+>>>>>>> 6c7386a44b90c228f71ae38a1ef762ef67301af0
