@@ -229,17 +229,17 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
-async def to_code(config):
+def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(var, config)
+    yield cg.register_component(var, config)
 
-    thermostat_in_pin = await cg.gpio_pin_expression(config[CONF_THERMOSTAT_IN_PIN])
+    thermostat_in_pin = yield cg.gpio_pin_expression(config[CONF_THERMOSTAT_IN_PIN])
     cg.add(var.set_thermostat_in_pin(thermostat_in_pin))
-    thermostat_out_pin = await cg.gpio_pin_expression(config[CONF_THERMOSTAT_OUT_PIN])
+    thermostat_out_pin = yield cg.gpio_pin_expression(config[CONF_THERMOSTAT_OUT_PIN])
     cg.add(var.set_thermostat_out_pin(thermostat_out_pin))
-    boiler_in_pin = await cg.gpio_pin_expression(config[CONF_BOILER_IN_PIN])
+    boiler_in_pin = yield cg.gpio_pin_expression(config[CONF_BOILER_IN_PIN])
     cg.add(var.set_boiler_in_pin(boiler_in_pin))
-    boiler_out_pin = await cg.gpio_pin_expression(config[CONF_BOILER_OUT_PIN])
+    boiler_out_pin = yield cg.gpio_pin_expression(config[CONF_BOILER_OUT_PIN])
     cg.add(var.set_boiler_out_pin(boiler_out_pin))
     for k in helper_opentherm_list:
         if k in config:
