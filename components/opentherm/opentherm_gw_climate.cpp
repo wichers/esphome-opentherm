@@ -66,15 +66,9 @@ void OpenThermGWClimate::dump_config() {
 void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatus status) {
 
     // master/thermostat request
-    OpenThermMessageType msg_type = getMessageType(request);
     OpenThermMessageID id = getDataID(request);
     uint16_t data = getUInt16(request);
-    //ESP_LOGD(TAG, "T [%d] [%03d] [%04X]", msg_type, id, data);
-
-    if (status != OpenThermResponseStatus::SUCCESS) {
-      ESP_LOGD(TAG, "ERROR, request status (%s)", statusToString(status));
-      return;
-    }
+    //ESP_LOGD(TAG, "T %03d %04x", id, data);
 
     switch (id) {
       case MSG_DATE:
@@ -137,36 +131,16 @@ void OpenThermGWClimate::processRequest(uint32_t request, OpenThermResponseStatu
     }
 
     uint32_t response = sOT.sendRequest(request);
-    OpenThermResponseStatus resp_status = sOT.getLastResponseStatus();
-    processResponse(request, response, resp_status);
-
-    if (resp_status == OpenThermResponseStatus::SUCCESS) {
-      //ESP_LOGD(TAG, "G [%d] [%03d] [%04X]", getMessageType(response), getDataID(response), getUInt16(response));
-      mOT.sendResponse(response);
-    }
+    status = sOT.getLastResponseStatus();
+    processResponse(response, status);
 }
 
-void OpenThermGWClimate::processResponse(uint32_t request, uint32_t &response, OpenThermResponseStatus status) {
+void OpenThermGWClimate::processResponse(uint32_t &response, OpenThermResponseStatus status) {
     
     // slave/boiler response
-    OpenThermMessageType msg_type = getMessageType(response);
     OpenThermMessageID id = getDataID(response);
     uint16_t data = getUInt16(response);
-    //ESP_LOGD(TAG, "B [%d] [%03d] [%04X]", msg_type, id, data);
-
-    if (status != OpenThermResponseStatus::SUCCESS) {
-      ESP_LOGD(TAG, "ERROR, response status (%s)", statusToString(status));
-      return;
-    }
-
-    if (id != getDataID(request)) {
-      ESP_LOGD(TAG, "ERROR, response ID doesn't match request ID");
-      return;
-    }
-
-    if (msg_type != OpenThermMessageType::READ_ACK && msg_type != OpenThermMessageType::WRITE_ACK)
-      return;
-
+    //ESP_LOGD(TAG, "B %03d %04x", id, data);
     switch (id) {
       case MSG_BURNER_STARTS:
         process_Slave_MSG_BURNER_STARTS(response);
@@ -298,6 +272,8 @@ void OpenThermGWClimate::processResponse(uint32_t request, uint32_t &response, O
         //ESP_LOGD(TAG, "Response %d not handled!", id);
         break;
     }
+
+    mOT.sendResponse(response);
 }
 
 
