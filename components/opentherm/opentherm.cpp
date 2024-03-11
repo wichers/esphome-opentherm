@@ -7,9 +7,7 @@ Copyright 2018, Ihor Melnyk */
 namespace esphome {
 namespace opentherm {
 
-OpenThermChannel::OpenThermChannel(InternalGPIOPin *pin_in, InternalGPIOPin *pin_out, bool slave):
-  pin_in_(pin_in),
-  pin_out_(pin_out),
+OpenThermChannel::OpenThermChannel(bool slave):
   isSlave(slave),
   store_(slave)
 {
@@ -27,7 +25,7 @@ void OpenThermChannel::setup(std::function<void(uint32_t, OpenThermResponseStatu
   this->pin_out_->setup();
 
   this->pin_in_->attach_interrupt(OpenThermStore::gpio_intr, &this->store_, gpio::INTERRUPT_ANY_EDGE);
- 
+
   activateBoiler();
   this->store_.status = OpenThermStatus::READY;
   this->process_response_callback = callback;
@@ -38,7 +36,7 @@ void OpenThermChannel::loop()
   OpenThermStatus st;
   uint32_t ts;
   {
-    InterruptLock lock; 
+    InterruptLock lock;
     st = this->store_.status;
     ts = this->store_.responseTimestamp;
   }
@@ -107,7 +105,7 @@ bool OpenThermChannel::sendRequestAync(uint32_t request)
 {
   bool ready;
   {
-    InterruptLock lock; 
+    InterruptLock lock;
     ready = isReady();
   }
 

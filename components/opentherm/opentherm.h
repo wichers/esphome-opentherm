@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 /*
 OpenTherm.h - OpenTherm Library for the ESP8266/Arduino platform
 https://github.com/ihormelnyk/OpenTherm
@@ -16,7 +16,7 @@ P MGS-TYPE SPARE DATA-ID  DATA-VALUE
 #include <functional>
 
 namespace esphome {
-namespace opentherm { 
+namespace opentherm {
 
 enum OpenThermResponseStatus {
 NONE,
@@ -169,7 +169,7 @@ RESPONSE_INVALID
 };
 
 struct OpenThermStore {
-  OpenThermStore(bool slave = false) 
+  OpenThermStore(bool slave = false)
   : isSlave(slave)
   {}
   static void gpio_intr(OpenThermStore *arg);
@@ -188,8 +188,8 @@ public:
   OpenThermChannel(bool isSlave = false);
   ~OpenThermChannel();
 
-  void set_pin_in(InternalGPIOPin *pin_in) {this->pin_in_ = pin_in;}
-  void set_pin_out(InternalGPIOPin *pin_out) {this->pin_out_ = pin_out;}
+  void set_pin_in(GPIOPin *pin_in) {this->pin_in_ = pin_in;}
+  void set_pin_out(GPIOPin *pin_out) {this->pin_out_ = pin_out;}
 
   void setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
   void loop();
@@ -206,8 +206,8 @@ protected:
   void sendBit(bool high);
 
   std::function<void(uint32_t, OpenThermResponseStatus)> process_response_callback;
-  InternalGPIOPin *pin_in_;
-  InternalGPIOPin *pin_out_;
+  GPIOPin *pin_in_;
+  GPIOPin *pin_out_;
   const bool isSlave;
   OpenThermResponseStatus responseStatus;
   OpenThermStore store_;
@@ -229,8 +229,8 @@ int8_t getUBInt8(const uint32_t response);
 int8_t getLBInt8(const uint32_t response);
 uint16_t getUInt16(const uint32_t response);
 int16_t getInt16(const uint32_t response);
-float getFloat(const uint32_t response);  
+float getFloat(const uint32_t response);
 uint16_t temperatureToData(float temperature);
 
 }  // namespace opentherm
-}  // namespace esphome 
+}  // namespace esphome
