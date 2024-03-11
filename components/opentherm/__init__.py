@@ -5,11 +5,11 @@ from esphome.components import climate
 from esphome.components import sensor
 from esphome.components import binary_sensor
 from esphome import pins
-openthermgw_ns = cg.esphome_ns.namespace('openthermgateway')
+openthermgw_ns = cg.esphome_ns.namespace('opentherm')
 OpenThermGWComponent = openthermgw_ns.class_('OpenThermGWClimate', cg.Component)
 
 AUTO_LOAD = ['sensor', 'climate', 'binary_sensor']
-CONF_HUB_ID = 'openthermgateway'
+CONF_HUB_ID = 'opentherm'
 
 UNIT_HOURS = "h"
 UNIT_BAR = "bar"
@@ -69,7 +69,7 @@ cv.Optional(CONF_CH_PUMP_STARTS): sensor.sensor_schema(
     accuracy_decimals=1,
     state_class=STATE_CLASS_MEASUREMENT).extend(),
 cv.Optional(CONF_CH_WATER_PRESSURE): sensor.sensor_schema(
-    device_class: DEVICE_CLASS_PRESSURE,
+    device_class=DEVICE_CLASS_PRESSURE,
     unit_of_measurement=UNIT_BAR,
     accuracy_decimals=1,
     state_class=STATE_CLASS_MEASUREMENT).extend(),
