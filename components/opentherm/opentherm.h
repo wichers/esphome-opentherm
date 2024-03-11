@@ -188,8 +188,8 @@ public:
   OpenThermChannel(bool isSlave = false);
   ~OpenThermChannel();
 
-  void set_pin_in(InternalGPIOPin * *pin_in) {this->pin_in_ = pin_in;}
-  void set_pin_out(InternalGPIOPin * *pin_out) {this->pin_out_ = pin_out;}
+  void set_pin_in(InternalGPIOPin *pin_in) {this->pin_in_ = pin_in;}
+  void set_pin_out(InternalGPIOPin *pin_out) {this->pin_out_ = pin_out;}
 
   void setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
   void loop();
@@ -206,8 +206,8 @@ protected:
   void sendBit(bool high);
 
   std::function<void(uint32_t, OpenThermResponseStatus)> process_response_callback;
-  InternalGPIOPin * *pin_in_;
-  InternalGPIOPin * *pin_out_;
+  InternalGPIOPin *pin_in_;
+  InternalGPIOPin *pin_out_;
   const bool isSlave;
   OpenThermResponseStatus responseStatus;
   OpenThermStore store_;
