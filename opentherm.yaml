@@ -1,9 +1,4 @@
 esphome:
-  includes:
-    - opentherm.h
-    - opentherm.cpp
-    - opentherm_gw_climate.h
-    - opentherm_gw_climate.cpp
   name: opentherm_gateway
   platform: ESP32
   board: esp-wrover-kit
@@ -11,7 +6,6 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
 
 # Enable logging
 logger:
@@ -26,41 +20,43 @@ web_server:
 sensor:
 binary_sensor:
 
-climate:
-- platform: custom
-  lambda: |-
-    auto thermostat_in = new esp32::ArduinoInternalGPIOPin();
-    thermostat_in->set_pin(26);
-    thermostat_in->pin_mode(gpio::FLAG_INPUT);
-    auto thermostat_out = new esp32::ArduinoInternalGPIOPin();
-    thermostat_out->set_pin(17);
-    thermostat_out->pin_mode(gpio::FLAG_OUTPUT);
-    auto boiler_in = new esp32::ArduinoInternalGPIOPin();
-    boiler_in->set_pin(25);
-    boiler_in->pin_mode(gpio::FLAG_INPUT);
-    auto boiler_out = new esp32::ArduinoInternalGPIOPin();
-    boiler_out->set_pin(16);
-    boiler_out->pin_mode(gpio::FLAG_OUTPUT);
-    auto ot = new esphome::opentherm::OpenThermGWClimate(thermostat_in, thermostat_out, boiler_in, boiler_out);
-    App.register_component(ot);
-    ot->ch_active = new BinarySensor("CH Active");
-    App.register_binary_sensor(ot->ch_active);
-    ot->dhw_active = new BinarySensor("DHW Active");
-    App.register_binary_sensor(ot->dhw_active);
-    ot->flame_on = new BinarySensor("Flame On");
-    App.register_binary_sensor(ot->flame_on);
-    ot->diagnostic_event = new BinarySensor("Diagnostic Event");
-    App.register_binary_sensor(ot->diagnostic_event);
-    ot->fault_indication = new BinarySensor("Fault Indication");
-    App.register_binary_sensor(ot->fault_indication);
-    ot->boiler_water_temp = new Sensor("Boiler Water Temperature");
-    App.register_sensor(ot->boiler_water_temp);
-    ot->dhw_temperature = new Sensor("DHW Temperature");
-    App.register_sensor(ot->dhw_temperature);
-    ot->return_water_temperature = new Sensor("Return Water Temperature");
-    App.register_sensor(ot->return_water_temperature);
-    ot->relative_modulation_level = new Sensor("Relative Modulation Level");
-    App.register_climate(ot);
-    return {ot};
-  climates:
-    - name: "livingroom"
+external_components:
+  - source:
+      type: git
+      url: https://github.com/wichers/esphome-opentherm
+    components: [openthermgateway]
+
+openthermgateway:
+  name: "OpenTherm Gateway"
+
+  thermostat_in_pin: 26
+  thermostat_out_pin: 17
+  boiler_in_pin: 25
+  boiler_out_pin: 16
+
+  fan_supply_air_percentage:
+    name: "Fan supply (%)"
+  fan_exhaust_air_percentage:
+    name: "Fan exhaust (%)"
+  fan_speed_supply:
+    name: "Supply fan speed"
+  fan_speed_exhaust:
+    name: "Exhaust fan speed"
+  is_ch_active:
+    name: "Central heating active"
+  is_dhw_active:
+    name: "Domestic hot water active"
+  is_flame_on:
+    name: "Flame on"
+  is_diagnostic_event:
+    name: "Diagnostic event active"
+  is_fault_indication:
+    name: "Fault indication active"
+  boiler_water_temp:
+    name: "Boiler water temperature"
+  dhw_temperature:
+    name: "Domestic hot water temperature"
+  return_water_temperature:
+    name: "Return water temperature"
+  relative_modulation_level:
+    name: "Relative modulation level"

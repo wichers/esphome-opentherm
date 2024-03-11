@@ -6,9 +6,9 @@ namespace opentherm {
 
 static const char *TAG = "opentherm_gw.climate";
 
-OpenThermGWClimate::OpenThermGWClimate(InternalGPIOPin *m_pin_in, InternalGPIOPin *m_pin_out, InternalGPIOPin *s_pin_in, InternalGPIOPin *s_pin_out)
-     : mOT(m_pin_in, m_pin_out),
-      sOT(s_pin_in, s_pin_out, true)
+OpenThermGWClimate::OpenThermGWClimate()
+     : mOT(),
+      sOT(true)
 {
 }
 

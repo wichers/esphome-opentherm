@@ -183,8 +183,11 @@ struct OpenThermStore {
 class OpenThermChannel
 {
 public:
-  OpenThermChannel(InternalGPIOPin *pin_in, InternalGPIOPin *pin_out, bool isSlave = false);
+  OpenThermChannel(bool isSlave = false);
   ~OpenThermChannel();
+
+  void set_pin_in(InternalGPIOPin *pin_in) {this->pin_in_ = pin_in;}
+  void set_pin_out(InternalGPIOPin *pin_out) {this->pin_out_ = pin_out;}
 
   void setup(std::function<void(uint32_t, OpenThermResponseStatus)> callback);
   void loop();
